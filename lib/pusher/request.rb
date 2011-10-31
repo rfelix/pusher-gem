@@ -81,6 +81,25 @@ module Pusher
       deferrable
     end
 
+    def send_async2
+      unless defined?(EventMachine) && EventMachine.reactor_running?
+        raise Error, "In order to use trigger_async you must be running inside an eventmachine loop"
+      end
+      require 'em-http' unless defined?(EventMachine::HttpRequest)
+
+      http = EventMachine::HttpRequest.new(@uri).post({
+        :query => @params, :timeout => 5, :body => @body,
+        :head => {'Content-Type'=> 'application/json'}
+      })
+      http.callback {
+        handle_response(http.response_header.status, http.response.chomp)
+      }
+      http.errback {
+        Pusher.logger.debug("Network error connecting to pusher: #{http.inspect}")
+        Error.new("Network error connecting to pusher")
+      }
+    end
+
     private
 
     def handle_response(status_code, body)

@@ -29,6 +29,11 @@ module Pusher
       request.send_async
     end
 
+    def trigger_async2(event_name, data, socket_id = nil, &block)
+      request = construct_event_request(event_name, data, socket_id)
+      request.send_async2
+    end
+
     # Trigger event
     #
     # @example
